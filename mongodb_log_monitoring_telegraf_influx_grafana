@@ -1,0 +1,76 @@
+influxdb / telegraf / choronograf / grafana installation on ubuntu ( aws) 
+
+wget https://dl.influxdata.com/influxdb/releases/influxdb_1.7.9_amd64.deb
+sudo dpkg -i influxdb_1.7.9_amd64.deb
+
+wget https://dl.influxdata.com/telegraf/releases/telegraf_1.13.2-1_amd64.deb
+sudo dpkg -i telegraf_1.13.2-1_amd64.deb
+
+wget https://dl.influxdata.com/chronograf/releases/chronograf_1.7.17_amd64.deb
+sudo dpkg -i chronograf_1.7.17_amd64.deb
+
+
+sudo service telegraf start
+
+sudo service influxdb start
+
+sudo service choronograf start
+
+sudo apt-get install -y apt-transport-https
+sudo apt-get install -y software-properties-common wget
+wget -q -O - https://packages.grafana.com/gpg.key | sudo apt-key add -
+sudo add-apt-repository "deb https://packages.grafana.com/oss/deb stable main"
+sudo apt-get update
+sudo apt-get install grafana
+
+sudo systemctl daemon-reload
+sudo systemctl start grafana-server
+sudo systemctl status grafana-server
+
+
+
+mongodb installation
+
+
+wget -qO - https://www.mongodb.org/static/pgp/server-4.2.asc | sudo apt-key add -
+echo "deb [ arch=amd64 ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/4.2 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.2.list
+sudo apt-get install -y mongodb-org
+sudo apt-get update
+sudo service mongod start
+sudo service mongod status
+sudo more /var/log/mongodb/mongod.log
+
+
+
+
+
+update the telegraf.conf file in directory /etc/telegraf/telegraf.conf
+# # Stream and parse log file(s).
+  [[inputs.logparser]]
+   files = ["/var/log/mongodb/mongod.log"]
+         measurement = "logs"
+         patterns = ['^%{GREEDYDATA:message:string}']
+
+
+
+sudo chmod 777 /var/log/mongodb/mongod.log
+
+
+sudo service telegraf stop
+sudo service telegraf start
+
+
+
+you will be able to see the logs in grafana dashboard
+34.244.60.23:300
+
+
+also you can see the log database in chronograf admin
+
+34.244.60.23:8888
+
+
+
+here are some useful links
+https://grafana.com/blog/2019/06/27/how-to-mix-metrics-and-logs-with-grafana-and-influx/
+
